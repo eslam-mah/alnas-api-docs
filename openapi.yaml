@@ -1,0 +1,132 @@
+openapi: 3.0.3
+info:
+  title: Al Nas Hospital HR API
+  description: HR system API for authentication and user management
+  version: 1.0.0
+
+servers:
+  - url: https://172.16.255.15/alnashospital/hr_api
+    description: Internal Hospital Network
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          example: 1235813213455
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - old_password
+        - new_password
+      properties:
+        old_password:
+          type: string
+          example: 1235813213455
+        new_password:
+          type: string
+          example: 123
+
+    UserResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 36
+            username:
+              type: string
+              example: "12"
+            display_name:
+              type: string
+              example: "Ayman Rajeh Mohammed Abdel Fattah"
+            role:
+              type: string
+              example: employee
+            employee_id:
+              type: integer
+              example: 128
+            employee_number:
+              type: integer
+              example: 12
+            last_login:
+              type: string
+              nullable: true
+              example: null
+
+paths:
+  /auth/login.php:
+    post:
+      tags:
+        - Authentication
+      summary: Login
+      description: Authenticate user and return access token/session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+        "401":
+          description: Invalid credentials
+
+  /user/me.php:
+    get:
+      tags:
+        - User
+      summary: Get current user profile
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User profile data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: Unauthorized
+
+  /user/change_password.php:
+    post:
+      tags:
+        - User
+      summary: Change user password
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          description: Password changed successfully
+        "400":
+          description: Invalid password
+        "401":
+          description: Unauthorized
