@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: Al Nas Hospital HR API
-  description: HR system API for authentication and user management
-  version: 1.0.0
+  description: HR system API for authentication, user management, and employee roster
+  version: 1.1.0
 
 servers:
   - url: https://172.16.255.15/alnashospital/hr_api
@@ -74,6 +74,76 @@ components:
               nullable: true
               example: null
 
+    RosterResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            employee_id:
+              type: integer
+              example: 128
+            period:
+              type: object
+              properties:
+                start:
+                  type: string
+                  format: date
+                  example: "2025-12-24"
+                end:
+                  type: string
+                  format: date
+                  example: "2025-12-30"
+            days_count:
+              type: integer
+              example: 7
+            days:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                    example: "2025-12-24"
+                  type:
+                    type: string
+                    enum: [shift, leave]
+                    example: shift
+                  shift:
+                    nullable: true
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: "9am-5pm (8h)"
+                      start:
+                        type: string
+                        example: "09:00"
+                      end:
+                        type: string
+                        example: "17:00"
+                      color:
+                        type: string
+                        example: "#3a86ff"
+                  leave:
+                    nullable: true
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: "Day Off"
+                      color:
+                        type: string
+                        example: "#ff7e05"
+                  notes:
+                    nullable: true
+                    type: string
+                    example: null
+
 paths:
   /auth/login.php:
     post:
@@ -128,5 +198,23 @@ paths:
           description: Password changed successfully
         "400":
           description: Invalid password
+        "401":
+          description: Unauthorized
+
+  /roster/my_schedule.php:
+    get:
+      tags:
+        - Roster
+      summary: Get my work schedule
+      description: Returns the logged-in employee roster for the current period
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Employee schedule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RosterResponse"
         "401":
           description: Unauthorized
