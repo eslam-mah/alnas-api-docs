@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: Al Nas Hospital HR API
-  description: HR system API for authentication, user management, and employee roster
-  version: 1.1.0
+  description: HR system API for authentication, user management, roster, and excuses
+  version: 1.2.0
 
 servers:
   - url: https://172.16.255.15/alnashospital/hr_api
@@ -18,9 +18,7 @@ components:
   schemas:
     LoginRequest:
       type: object
-      required:
-        - username
-        - password
+      required: [username, password]
       properties:
         username:
           type: string
@@ -31,9 +29,7 @@ components:
 
     ChangePasswordRequest:
       type: object
-      required:
-        - old_password
-        - new_password
+      required: [old_password, new_password]
       properties:
         old_password:
           type: string
@@ -41,6 +37,33 @@ components:
         new_password:
           type: string
           example: 123
+
+    ExcuseCreateRequest:
+      type: object
+      required: [date, type, reason]
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2026-01-01"
+        type:
+          type: string
+          enum: [come_late, leave_early, absence]
+          example: come_late
+        from:
+          type: string
+          example: "09:00"
+        reason:
+          type: string
+          example: test
+
+    ExcuseCancelRequest:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+          example: 64
 
     UserResponse:
       type: object
@@ -108,11 +131,9 @@ components:
                   date:
                     type: string
                     format: date
-                    example: "2025-12-24"
                   type:
                     type: string
                     enum: [shift, leave]
-                    example: shift
                   shift:
                     nullable: true
                     type: object
@@ -142,15 +163,12 @@ components:
                   notes:
                     nullable: true
                     type: string
-                    example: null
 
 paths:
   /auth/login.php:
     post:
-      tags:
-        - Authentication
+      tags: [Authentication]
       summary: Login
-      description: Authenticate user and return access token/session
       requestBody:
         required: true
         content:
@@ -158,33 +176,38 @@ paths:
             schema:
               $ref: "#/components/schemas/LoginRequest"
       responses:
-        "200":
-          description: Login successful
-        "401":
-          description: Invalid credentials
+        "200": { description: Login successful }
+        "401": { description: Invalid credentials }
+
+  /auth/logout.php:
+    post:
+      tags: [Authentication]
+      summary: Logout
+      security:
+        - BearerAuth: []
+      responses:
+        "200": { description: Logout successful }
+        "401": { description: Unauthorized }
 
   /user/me.php:
     get:
-      tags:
-        - User
+      tags: [User]
       summary: Get current user profile
       security:
         - BearerAuth: []
       responses:
         "200":
-          description: User profile data
+          description: User profile
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserResponse"
-        "401":
-          description: Unauthorized
+        "401": { description: Unauthorized }
 
   /user/change_password.php:
     post:
-      tags:
-        - User
-      summary: Change user password
+      tags: [User]
+      summary: Change password
       security:
         - BearerAuth: []
       requestBody:
@@ -194,27 +217,62 @@ paths:
             schema:
               $ref: "#/components/schemas/ChangePasswordRequest"
       responses:
-        "200":
-          description: Password changed successfully
-        "400":
-          description: Invalid password
-        "401":
-          description: Unauthorized
+        "200": { description: Password changed }
+        "401": { description: Unauthorized }
 
   /roster/my_schedule.php:
     get:
-      tags:
-        - Roster
-      summary: Get my work schedule
-      description: Returns the logged-in employee roster for the current period
+      tags: [Roster]
+      summary: Get my schedule
       security:
         - BearerAuth: []
       responses:
         "200":
-          description: Employee schedule
+          description: Schedule data
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/RosterResponse"
-        "401":
-          description: Unauthorized
+        "401": { description: Unauthorized }
+
+  /excuse/my_requests.php:
+    get:
+      tags: [Excuses]
+      summary: Get my excuse requests
+      security:
+        - BearerAuth: []
+      responses:
+        "200": { description: List of excuses }
+        "401": { description: Unauthorized }
+
+  /excuse/create.php:
+    post:
+      tags: [Excuses]
+      summary: Create excuse request
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExcuseCreateRequest"
+      responses:
+        "200": { description: Excuse created }
+        "401": { description: Unauthorized }
+
+  /excuse/cancel.php:
+    post:
+      tags: [Excuses]
+      summary: Cancel excuse request
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExcuseCancelRequest"
+      responses:
+        "200": { description: Excuse canceled }
+        "401": { description: Unauthorized }
