@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Al Nas Hospital HR API
   description: HR system API for authentication, user management, roster, and excuses
-  version: 1.2.0
+  version: 1.3.0
 
 servers:
   - url: https://172.16.255.15/alnashospital/hr_api
@@ -49,7 +49,7 @@ components:
         type:
           type: string
           enum: [come_late, leave_early, absence]
-          example: come_late
+          example: leave_early
         from:
           type: string
           example: "09:00"
@@ -64,6 +64,54 @@ components:
         id:
           type: integer
           example: 64
+
+    ExcuseItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 67
+        permission_date:
+          type: string
+          format: date
+          example: "2025-12-30"
+        permission_type:
+          type: string
+          enum: [come_late, leave_early, absence]
+          example: leave_early
+        time_from:
+          type: string
+          example: "15:00:00"
+        time_to:
+          type: string
+          example: "17:00:00"
+        status:
+          type: string
+          enum: [pending, approved, rejected, cancelled]
+          example: pending
+        reason:
+          type: string
+          example: hhhh
+        created_at:
+          type: string
+          example: "2025-12-29 13:42:20"
+
+    ExcuseListResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: My excuse requests
+        code:
+          type: integer
+          example: 200
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExcuseItem"
 
     UserResponse:
       type: object
@@ -115,14 +163,11 @@ components:
                 start:
                   type: string
                   format: date
-                  example: "2025-12-24"
                 end:
                   type: string
                   format: date
-                  example: "2025-12-30"
             days_count:
               type: integer
-              example: 7
             days:
               type: array
               items:
@@ -137,29 +182,9 @@ components:
                   shift:
                     nullable: true
                     type: object
-                    properties:
-                      name:
-                        type: string
-                        example: "9am-5pm (8h)"
-                      start:
-                        type: string
-                        example: "09:00"
-                      end:
-                        type: string
-                        example: "17:00"
-                      color:
-                        type: string
-                        example: "#3a86ff"
                   leave:
                     nullable: true
                     type: object
-                    properties:
-                      name:
-                        type: string
-                        example: "Day Off"
-                      color:
-                        type: string
-                        example: "#ff7e05"
                   notes:
                     nullable: true
                     type: string
@@ -187,7 +212,6 @@ paths:
         - BearerAuth: []
       responses:
         "200": { description: Logout successful }
-        "401": { description: Unauthorized }
 
   /user/me.php:
     get:
@@ -202,7 +226,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserResponse"
-        "401": { description: Unauthorized }
 
   /user/change_password.php:
     post:
@@ -218,7 +241,6 @@ paths:
               $ref: "#/components/schemas/ChangePasswordRequest"
       responses:
         "200": { description: Password changed }
-        "401": { description: Unauthorized }
 
   /roster/my_schedule.php:
     get:
@@ -228,22 +250,26 @@ paths:
         - BearerAuth: []
       responses:
         "200":
-          description: Schedule data
+          description: Schedule
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/RosterResponse"
-        "401": { description: Unauthorized }
 
   /excuse/my_requests.php:
     get:
       tags: [Excuses]
       summary: Get my excuse requests
+      description: Returns all excuse requests created by the logged-in employee
       security:
         - BearerAuth: []
       responses:
-        "200": { description: List of excuses }
-        "401": { description: Unauthorized }
+        "200":
+          description: Excuse list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExcuseListResponse"
 
   /excuse/create.php:
     post:
@@ -259,7 +285,6 @@ paths:
               $ref: "#/components/schemas/ExcuseCreateRequest"
       responses:
         "200": { description: Excuse created }
-        "401": { description: Unauthorized }
 
   /excuse/cancel.php:
     post:
@@ -275,4 +300,3 @@ paths:
               $ref: "#/components/schemas/ExcuseCancelRequest"
       responses:
         "200": { description: Excuse canceled }
-        "401": { description: Unauthorized }
