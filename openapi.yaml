@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Al Nas Hospital HR API
   description: HR system API for authentication, user management, roster, and excuses
-  version: 1.3.0
+  version: 1.4.0
 
 servers:
   - url: https://172.16.255.15/alnashospital/hr_api
@@ -38,6 +38,83 @@ components:
           type: string
           example: 123
 
+    UserMeResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 84
+            username:
+              type: string
+              example: "975"
+            display_name:
+              type: string
+              example: "Esraa abdelrahman Hassanin"
+            role:
+              type: string
+              example: department_super
+            employee_id:
+              type: integer
+              example: 160
+            employee_number:
+              type: integer
+              example: 975
+            last_login:
+              type: string
+              nullable: true
+              example: "2025-12-28 13:43:56"
+
+            name_ar:
+              type: string
+              example: "Esraa abdelrahman Hassanin"
+            name_en:
+              type: string
+              example: "Esraa abdelrahman Hassanin"
+
+            mobile1:
+              type: string
+              example: "1208530935"
+            mobile2:
+              type: string
+              nullable: true
+              example: null
+
+            leave_balance:
+              type: number
+              nullable: true
+              example: null
+
+            category_name:
+              type: string
+              example: "Admin"
+            department_name:
+              type: string
+              example: "Engineering"
+            section_name:
+              type: string
+              nullable: true
+              example: null
+            position_name:
+              type: string
+              nullable: true
+              example: null
+
+            late_permissions_used:
+              type: integer
+              example: 0
+            late_permissions_allowed:
+              type: integer
+              example: 2
+            late_permissions_remaining:
+              type: integer
+              example: 2
+
     ExcuseCreateRequest:
       type: object
       required: [date, type, reason]
@@ -70,93 +147,48 @@ components:
       properties:
         id:
           type: integer
-          example: 67
         permission_date:
           type: string
           format: date
-          example: "2025-12-30"
         permission_type:
           type: string
           enum: [come_late, leave_early, absence]
-          example: leave_early
         time_from:
           type: string
-          example: "15:00:00"
         time_to:
           type: string
-          example: "17:00:00"
         status:
           type: string
           enum: [pending, approved, rejected, cancelled]
-          example: pending
         reason:
           type: string
-          example: hhhh
         created_at:
           type: string
-          example: "2025-12-29 13:42:20"
 
     ExcuseListResponse:
       type: object
       properties:
         status:
           type: boolean
-          example: true
         message:
           type: string
-          example: My excuse requests
         code:
           type: integer
-          example: 200
         data:
           type: array
           items:
             $ref: "#/components/schemas/ExcuseItem"
-
-    UserResponse:
-      type: object
-      properties:
-        status:
-          type: boolean
-          example: true
-        data:
-          type: object
-          properties:
-            id:
-              type: integer
-              example: 36
-            username:
-              type: string
-              example: "12"
-            display_name:
-              type: string
-              example: "Ayman Rajeh Mohammed Abdel Fattah"
-            role:
-              type: string
-              example: employee
-            employee_id:
-              type: integer
-              example: 128
-            employee_number:
-              type: integer
-              example: 12
-            last_login:
-              type: string
-              nullable: true
-              example: null
 
     RosterResponse:
       type: object
       properties:
         status:
           type: boolean
-          example: true
         data:
           type: object
           properties:
             employee_id:
               type: integer
-              example: 128
             period:
               type: object
               properties:
@@ -202,7 +234,6 @@ paths:
               $ref: "#/components/schemas/LoginRequest"
       responses:
         "200": { description: Login successful }
-        "401": { description: Invalid credentials }
 
   /auth/logout.php:
     post:
@@ -221,11 +252,11 @@ paths:
         - BearerAuth: []
       responses:
         "200":
-          description: User profile
+          description: User profile (extended)
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserResponse"
+                $ref: "#/components/schemas/UserMeResponse"
 
   /user/change_password.php:
     post:
@@ -260,7 +291,6 @@ paths:
     get:
       tags: [Excuses]
       summary: Get my excuse requests
-      description: Returns all excuse requests created by the logged-in employee
       security:
         - BearerAuth: []
       responses:
