@@ -1,11 +1,11 @@
 openapi: 3.0.3
 info:
   title: Al Nas Hospital HR API
-  description: HR system API for authentication, user management, roster, and excuses
-  version: 1.4.0
+  description: HR system API for authentication, user management, roster, excuses, and leaves
+  version: 1.5.0
 
 servers:
-  - url: https://172.16.255.15/alnashospital/hr_api
+  - url: https://172.16.63.95/alnashospital/hr_api
     description: Internal Hospital Network
 
 components:
@@ -16,16 +16,15 @@ components:
       bearerFormat: JWT
 
   schemas:
+    # ---------- AUTH ----------
     LoginRequest:
       type: object
       required: [username, password]
       properties:
         username:
           type: string
-          example: admin
         password:
           type: string
-          example: 1235813213455
 
     ChangePasswordRequest:
       type: object
@@ -33,139 +32,81 @@ components:
       properties:
         old_password:
           type: string
-          example: 1235813213455
         new_password:
           type: string
-          example: 123
 
+    # ---------- USER ----------
     UserMeResponse:
       type: object
       properties:
         status:
           type: boolean
-          example: true
         data:
           type: object
           properties:
-            id:
-              type: integer
-              example: 84
-            username:
-              type: string
-              example: "975"
-            display_name:
-              type: string
-              example: "Esraa abdelrahman Hassanin"
-            role:
-              type: string
-              example: department_super
-            employee_id:
-              type: integer
-              example: 160
-            employee_number:
-              type: integer
-              example: 975
-            last_login:
-              type: string
-              nullable: true
-              example: "2025-12-28 13:43:56"
+            id: { type: integer }
+            username: { type: string }
+            display_name: { type: string }
+            role: { type: string }
+            employee_id: { type: integer }
+            employee_number: { type: integer }
+            last_login: { type: string, nullable: true }
+            name_ar: { type: string }
+            name_en: { type: string }
+            mobile1: { type: string }
+            mobile2: { type: string, nullable: true }
+            leave_balance: { type: number, nullable: true }
+            category_name: { type: string }
+            department_name: { type: string }
+            section_name: { type: string, nullable: true }
+            position_name: { type: string, nullable: true }
+            late_permissions_used: { type: integer }
+            late_permissions_allowed: { type: integer }
+            late_permissions_remaining: { type: integer }
 
-            name_ar:
-              type: string
-              example: "Esraa abdelrahman Hassanin"
-            name_en:
-              type: string
-              example: "Esraa abdelrahman Hassanin"
-
-            mobile1:
-              type: string
-              example: "1208530935"
-            mobile2:
-              type: string
-              nullable: true
-              example: null
-
-            leave_balance:
-              type: number
-              nullable: true
-              example: null
-
-            category_name:
-              type: string
-              example: "Admin"
-            department_name:
-              type: string
-              example: "Engineering"
-            section_name:
-              type: string
-              nullable: true
-              example: null
-            position_name:
-              type: string
-              nullable: true
-              example: null
-
-            late_permissions_used:
-              type: integer
-              example: 0
-            late_permissions_allowed:
-              type: integer
-              example: 2
-            late_permissions_remaining:
-              type: integer
-              example: 2
-
-    ExcuseCreateRequest:
+    # ---------- LEAVE ----------
+    LeaveCreateRequest:
       type: object
-      required: [date, type, reason]
+      required: [leave_type_id, date_from, date_to, reason]
       properties:
-        date:
+        leave_type_id:
+          type: integer
+          example: 3
+        date_from:
           type: string
           format: date
-          example: "2026-01-01"
-        type:
+        date_to:
           type: string
-          enum: [come_late, leave_early, absence]
-          example: leave_early
-        from:
-          type: string
-          example: "09:00"
+          format: date
         reason:
           type: string
-          example: test
 
-    ExcuseCancelRequest:
+    LeaveCancelRequest:
       type: object
       required: [id]
       properties:
         id:
           type: integer
-          example: 64
+          example: 15
 
-    ExcuseItem:
+    LeaveType:
       type: object
       properties:
         id:
           type: integer
-        permission_date:
+        name:
           type: string
-          format: date
-        permission_type:
+        code:
           type: string
-          enum: [come_late, leave_early, absence]
-        time_from:
+        is_paid:
+          type: integer
+          enum: [0, 1]
+        color:
           type: string
-        time_to:
-          type: string
-        status:
-          type: string
-          enum: [pending, approved, rejected, cancelled]
-        reason:
-          type: string
-        created_at:
+        label:
           type: string
 
-    ExcuseListResponse:
+    LeaveTypesResponse:
       type: object
       properties:
         status:
@@ -177,51 +118,97 @@ components:
         data:
           type: array
           items:
-            $ref: "#/components/schemas/ExcuseItem"
+            $ref: "#/components/schemas/LeaveType"
 
-    RosterResponse:
+    LeaveRequestItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        leave_type_id:
+          type: integer
+        date_from:
+          type: string
+          format: date
+        date_to:
+          type: string
+          format: date
+        days_count:
+          type: integer
+        status:
+          type: string
+          enum: [pending, approved, rejected, cancelled]
+        period_id:
+          type: integer
+        reason:
+          type: string
+
+    LeaveMyRequestsResponse:
       type: object
       properties:
         status:
           type: boolean
+        message:
+          type: string
+        code:
+          type: integer
         data:
-          type: object
-          properties:
-            employee_id:
-              type: integer
-            period:
-              type: object
-              properties:
-                start:
-                  type: string
-                  format: date
-                end:
-                  type: string
-                  format: date
-            days_count:
-              type: integer
-            days:
-              type: array
-              items:
-                type: object
-                properties:
-                  date:
-                    type: string
-                    format: date
-                  type:
-                    type: string
-                    enum: [shift, leave]
-                  shift:
-                    nullable: true
-                    type: object
-                  leave:
-                    nullable: true
-                    type: object
-                  notes:
-                    nullable: true
-                    type: string
+          type: array
+          items:
+            $ref: "#/components/schemas/LeaveRequestItem"
+
+    # ---------- EXCUSE ----------
+    ExcuseCreateRequest:
+      type: object
+      required: [date, type, reason]
+      properties:
+        date:
+          type: string
+          format: date
+        type:
+          type: string
+          enum: [come_late, leave_early, absence]
+        from:
+          type: string
+        reason:
+          type: string
+
+    ExcuseCancelRequest:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: integer
+
+    ExcuseItem:
+      type: object
+      properties:
+        id: { type: integer }
+        permission_date: { type: string, format: date }
+        permission_type:
+          type: string
+          enum: [come_late, leave_early, absence]
+        time_from: { type: string }
+        time_to: { type: string }
+        status:
+          type: string
+          enum: [pending, approved, rejected, cancelled]
+        reason: { type: string }
+        created_at: { type: string }
+
+    ExcuseListResponse:
+      type: object
+      properties:
+        status: { type: boolean }
+        message: { type: string }
+        code: { type: integer }
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExcuseItem"
 
 paths:
+  # ---------- AUTH ----------
   /auth/login.php:
     post:
       tags: [Authentication]
@@ -239,20 +226,19 @@ paths:
     post:
       tags: [Authentication]
       summary: Logout
-      security:
-        - BearerAuth: []
+      security: [{ BearerAuth: [] }]
       responses:
         "200": { description: Logout successful }
 
+  # ---------- USER ----------
   /user/me.php:
     get:
       tags: [User]
       summary: Get current user profile
-      security:
-        - BearerAuth: []
+      security: [{ BearerAuth: [] }]
       responses:
         "200":
-          description: User profile (extended)
+          description: User profile
           content:
             application/json:
               schema:
@@ -262,8 +248,7 @@ paths:
     post:
       tags: [User]
       summary: Change password
-      security:
-        - BearerAuth: []
+      security: [{ BearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -273,26 +258,67 @@ paths:
       responses:
         "200": { description: Password changed }
 
-  /roster/my_schedule.php:
+  # ---------- LEAVE ----------
+  /leave/leaves_types.php:
     get:
-      tags: [Roster]
-      summary: Get my schedule
-      security:
-        - BearerAuth: []
+      tags: [Leave]
+      summary: Get leave types
+      security: [{ BearerAuth: [] }]
       responses:
         "200":
-          description: Schedule
+          description: Leave types list
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RosterResponse"
+                $ref: "#/components/schemas/LeaveTypesResponse"
 
+  /leave/create.php:
+    post:
+      tags: [Leave]
+      summary: Create leave request
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeaveCreateRequest"
+      responses:
+        "200": { description: Leave request created }
+
+  /leave/my_requests.php:
+    get:
+      tags: [Leave]
+      summary: Get my leave requests
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: My leave requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeaveMyRequestsResponse"
+
+  /leave/cancel.php:
+    post:
+      tags: [Leave]
+      summary: Cancel leave request
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeaveCancelRequest"
+      responses:
+        "200": { description: Leave canceled }
+
+  # ---------- EXCUSE ----------
   /excuse/my_requests.php:
     get:
       tags: [Excuses]
       summary: Get my excuse requests
-      security:
-        - BearerAuth: []
+      security: [{ BearerAuth: [] }]
       responses:
         "200":
           description: Excuse list
@@ -305,8 +331,7 @@ paths:
     post:
       tags: [Excuses]
       summary: Create excuse request
-      security:
-        - BearerAuth: []
+      security: [{ BearerAuth: [] }]
       requestBody:
         required: true
         content:
@@ -320,8 +345,7 @@ paths:
     post:
       tags: [Excuses]
       summary: Cancel excuse request
-      security:
-        - BearerAuth: []
+      security: [{ BearerAuth: [] }]
       requestBody:
         required: true
         content:
