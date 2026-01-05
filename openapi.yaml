@@ -8,7 +8,7 @@ info:
   version: 1.0.0
 
 servers:
-  - url: http://172.16.63.95/alnashospital/hr_api
+  - url: http://172.16.255.15/alnashospital/hr_api
     description: Internal Network
 
 tags:
